@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Serilog.Configuration;
 using Serilog.Events;
 using Serilog.Sinks.EventGrid.Sinks.EventGrid;
@@ -13,6 +11,8 @@ namespace Serilog
       this LoggerSinkConfiguration loggerConfiguration,
       string key, 
       string topicEndpoint,
+      string customEventSubject = null,
+      string customEventType = null,
       LogEventLevel restrictedToMinimumLevel = LogEventLevel.Error,
       IFormatProvider formatProvider = null)
     {
@@ -28,9 +28,8 @@ namespace Serilog
       if (!topicUri.IsAbsoluteUri)
         throw new ArgumentException("topicEndpoint must be an absolute uri");
 
-
       return loggerConfiguration.Sink(
-        new EventGridSink(formatProvider, key, topicUri), restrictedToMinimumLevel);
+        new EventGridSink(formatProvider, key, topicUri, customEventSubject, customEventType), restrictedToMinimumLevel);
     }
   }
 }
