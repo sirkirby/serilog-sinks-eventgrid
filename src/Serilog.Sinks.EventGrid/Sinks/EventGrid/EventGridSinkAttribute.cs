@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Serilog.Sinks.EventGrid.Sinks.EventGrid
+namespace Serilog.Sinks.EventGrid
 {
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
   public class EventGridSinkAttribute : Attribute
@@ -16,8 +14,9 @@ namespace Serilog.Sinks.EventGrid.Sinks.EventGrid
       CustomEvenType = customEvenType;
     }
 
-   public EventGridSinkAttribute(string customEventSubject) : this(customEventSubject, "serilog") { }
+   public EventGridSinkAttribute(string customEventType) : this(null, customEventType) { }
 
-    public EventGridSinkAttribute() : this ("logEvent") { }
+
+    public EventGridSinkAttribute() : this (null) { }
   }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using Serilog.Debugging;
 using Serilog.Events;
 
-namespace Serilog.Sinks.EventGrid.Sinks.EventGrid
+namespace Serilog.Sinks.EventGrid
 {
   public static class EventGridPropertyFormatter
   {
@@ -41,7 +41,7 @@ namespace Serilog.Sinks.EventGrid.Sinks.EventGrid
         }
         return result;
       }
-
+      
       if (value is SequenceValue seq)
         return seq.Elements.Select(Simplify).ToArray();
 
