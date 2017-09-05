@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -17,9 +16,9 @@ namespace Serilog.Sinks.EventGrid
     readonly Uri _topicUri;
     readonly string _customEventSubject;
     readonly string _customEventType;
-    readonly CustomEventAuth _customEventAuth;
+    readonly CustomEventRequestAuth _customEventRequestAuth;
 
-    public EventGridSink(IFormatProvider formatProvider, string key, Uri topicUri, string customEventSubject = null, string customEventType = null, CustomEventAuth customEventAuth = CustomEventAuth.Key)
+    public EventGridSink(IFormatProvider formatProvider, string key, Uri topicUri, string customEventSubject = null, string customEventType = null, CustomEventRequestAuth customEventRequestAuth = CustomEventRequestAuth.Key)
     {
       if (string.IsNullOrWhiteSpace(key))
         throw new ArgumentNullException("key");
@@ -28,7 +27,7 @@ namespace Serilog.Sinks.EventGrid
       _topicUri = topicUri;
       _customEventSubject = customEventSubject;
       _customEventType = customEventType;
-      _customEventAuth = customEventAuth;
+      _customEventRequestAuth = customEventRequestAuth;
 
       if (string.IsNullOrEmpty(_customEventType))
         _customEventType = "serilogLogEvent";
@@ -45,7 +44,7 @@ namespace Serilog.Sinks.EventGrid
 
       var client = new HttpClient();
       var request = new HttpRequestMessage(HttpMethod.Post, _topicUri);
-      request.Headers.Add(_customEventAuth == CustomEventAuth.Key ? "aeg-sas-key" : "aeg-sas-token", _key);
+      request.Headers.Add(_customEventRequestAuth == CustomEventRequestAuth.Key ? "aeg-sas-key" : "aeg-sas-token", _key);
       var body = new[] { customEvent };
 
       var json = JsonConvert.SerializeObject(body, Newtonsoft.Json.Formatting.Indented, new JsonSerializerSettings
@@ -58,7 +57,7 @@ namespace Serilog.Sinks.EventGrid
       var response = client.SendAsync(request).Result;
     }
 
-    CustomEvent BuildCustomEvent()
+    CustomEventRequest BuildCustomEvent()
     {
       // walk up the stack and check for custom attribute tags
       var st = new StackTrace();
@@ -66,10 +65,10 @@ namespace Serilog.Sinks.EventGrid
       if (stackFrames == null) return null;
       var methods = stackFrames.Where(f => f != null).Select(f => f.GetMethod()).ToArray();
       // walk the sink back up to the calling method
-      var callingMethod = st.GetFrame(5)?.GetMethod() ?? methods.First();
+      var callingMethod = methods.FirstOrDefault(m => !m?.DeclaringType?.FullName?.StartsWith("Serilog") ?? false) ?? methods.First();
 
       EventGridSinkAttribute myCustomAttribute;
-      var customEvent = new CustomEvent();
+      var customEvent = new CustomEventRequest();
 
       // first look for the first method in the stack with the attribute
       var methodAttribute = methods.FirstOrDefault(m => m.GetCustomAttribute<EventGridSinkAttribute>() != null)?.GetCustomAttribute<EventGridSinkAttribute>();
@@ -78,7 +77,7 @@ namespace Serilog.Sinks.EventGrid
       else
       {
         // then look for the first class with the attribute, there can be only one
-        var classAttribute = methods.FirstOrDefault(m => m.ReflectedType.GetCustomAttribute<EventGridSinkAttribute>() != null)?.ReflectedType.GetCustomAttribute<EventGridSinkAttribute>();
+        var classAttribute = methods.FirstOrDefault(m => m.ReflectedType != null && m.ReflectedType.GetCustomAttribute<EventGridSinkAttribute>() != null)?.ReflectedType?.GetCustomAttribute<EventGridSinkAttribute>();
         myCustomAttribute = classAttribute;
       }
 
@@ -91,9 +90,9 @@ namespace Serilog.Sinks.EventGrid
       string GetSubject()
       {
         // try to find the method where the log event initiated from
-        var assemblyName = callingMethod.ReflectedType.Assembly.GetName().Name;
-        var className = callingMethod.ReflectedType.Name;
-        var methodName = callingMethod.Name;
+        var assemblyName = callingMethod?.ReflectedType?.Assembly.GetName().Name;
+        var className = callingMethod?.ReflectedType?.Name;
+        var methodName = callingMethod?.Name;
         return $"{assemblyName ?? "UnknownApplication"}/{className}/{methodName}";
 
       }

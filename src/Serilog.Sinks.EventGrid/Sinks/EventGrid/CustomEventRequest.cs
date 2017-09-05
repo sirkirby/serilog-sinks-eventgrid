@@ -2,14 +2,14 @@
 
 namespace Serilog.Sinks.EventGrid
 {
-  public enum CustomEventAuth
+  public enum CustomEventRequestAuth
   {
     Key,
     SAS
   }
 
   [Serializable]
-  class CustomEvent
+  class CustomEventRequest
   {
     public string Id { get; set; }
     public string EventType { get; set; }
@@ -17,7 +17,7 @@ namespace Serilog.Sinks.EventGrid
     public string EventTime { get; set; }
     public object Data { get; set; }
 
-    public CustomEvent()
+    public CustomEventRequest()
     {
       Id = Guid.NewGuid().ToString();
       EventTime = DateTime.UtcNow.ToString("o");
