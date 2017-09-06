@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -17,8 +18,15 @@ namespace Serilog.Sinks.EventGrid
     readonly string _customEventSubject;
     readonly string _customEventType;
     readonly CustomEventRequestAuth _customEventRequestAuth;
+    public const string EventTypeProperty = "EventType";
+    public const string EventSubjectProperty = "EventSubject";
 
-    public EventGridSink(IFormatProvider formatProvider, string key, Uri topicUri, string customEventSubject = null, string customEventType = null, CustomEventRequestAuth customEventRequestAuth = CustomEventRequestAuth.Key)
+    public EventGridSink(IFormatProvider formatProvider, 
+      string key, 
+      Uri topicUri, 
+      string customEventSubject = null, 
+      string customEventType = null, 
+      CustomEventRequestAuth customEventRequestAuth = CustomEventRequestAuth.Key)
     {
       if (string.IsNullOrWhiteSpace(key))
         throw new ArgumentNullException("key");
@@ -28,20 +36,30 @@ namespace Serilog.Sinks.EventGrid
       _customEventSubject = customEventSubject;
       _customEventType = customEventType;
       _customEventRequestAuth = customEventRequestAuth;
-
-      if (string.IsNullOrEmpty(_customEventType))
-        _customEventType = "serilogLogEvent";
     }
 
     public void Emit(LogEvent logEvent)
     {
-      var customEvent = BuildCustomEvent();
-
-      // add the even payload from even properties
-      customEvent.Data = logEvent.Properties
+      // make a dictionary from the log event properties
+      var props = logEvent.Properties
         .Select(pv => new {Name = pv.Key, Value = EventGridPropertyFormatter.Simplify(pv.Value)})
         .ToDictionary(a => a.Name, b => b.Value);
 
+      // build the request from sink config and log event properties
+      var customEvent = new CustomEventRequest
+      {
+        Subject = _customEventSubject ?? GetEventSubjectFromProperties(props),
+        EventType = _customEventType ?? GetEventTypeFromProperties(props)
+      };
+
+      // if we don't have what we need from the config or the event, pull event info from the call stack
+      if (string.IsNullOrEmpty(customEvent.Subject) || string.IsNullOrEmpty(customEvent.EventType))
+        GetEventInfoFromAttribute(customEvent);
+
+      // clean up the payload
+      customEvent.Data = props.Where(p => p.Key != EventTypeProperty && p.Key != EventSubjectProperty);
+
+      // finally, we have what we need post the event
       var client = new HttpClient();
       var request = new HttpRequestMessage(HttpMethod.Post, _topicUri);
       request.Headers.Add(_customEventRequestAuth == CustomEventRequestAuth.Key ? "aeg-sas-key" : "aeg-sas-token", _key);
@@ -57,18 +75,27 @@ namespace Serilog.Sinks.EventGrid
       var response = client.SendAsync(request).Result;
     }
 
-    CustomEventRequest BuildCustomEvent()
+    string GetEventSubjectFromProperties(Dictionary<string, object> props)
     {
-      // walk up the stack and check for custom attribute tags
+      return props.ContainsKey(EventSubjectProperty) ? props.First(p => p.Key == EventSubjectProperty).Value.ToString() : null;
+    }
+
+    string GetEventTypeFromProperties(Dictionary<string, object> props)
+    {
+      return props.ContainsKey(EventTypeProperty) ? props.First(p => p.Key == EventTypeProperty).Value.ToString() : null;
+    }
+
+    void GetEventInfoFromAttribute(CustomEventRequest customEvent)
+    {     
+      // walk up the stack and check for our EventGridSinkAttribute
       var st = new StackTrace();
       var stackFrames = st.GetFrames();
-      if (stackFrames == null) return null;
-      var methods = stackFrames.Where(f => f != null).Select(f => f.GetMethod()).ToArray();
-      // walk the sink back up to the calling method
-      var callingMethod = methods.FirstOrDefault(m => !m?.DeclaringType?.FullName?.StartsWith("Serilog") ?? false) ?? methods.First();
+      if (stackFrames == null) return;
 
+      var methods = stackFrames.Where(f => f != null).Select(f => f.GetMethod()).ToArray();
+      // walk through serilog to reach the calling method
+      var callingMethod = methods.FirstOrDefault(m => !m?.DeclaringType?.FullName?.StartsWith("Serilog") ?? false) ?? methods.First();
       EventGridSinkAttribute myCustomAttribute;
-      var customEvent = new CustomEventRequest();
 
       // first look for the first method in the stack with the attribute
       var methodAttribute = methods.FirstOrDefault(m => m.GetCustomAttribute<EventGridSinkAttribute>() != null)?.GetCustomAttribute<EventGridSinkAttribute>();
@@ -81,19 +108,17 @@ namespace Serilog.Sinks.EventGrid
         myCustomAttribute = classAttribute;
       }
 
-      // assign the attribute values or fall back to the instance values
-      customEvent.Subject = myCustomAttribute?.CustomEventSubject ?? _customEventSubject ?? GetSubject();
-      customEvent.EventType = myCustomAttribute?.CustomEvenType ?? _customEventType;
-
-      return customEvent;
+      // assign the event info, failing back to generic defaults
+      customEvent.Subject = customEvent.Subject ?? myCustomAttribute?.CustomEventSubject ?? GetSubject();
+      customEvent.EventType = customEvent.EventType ?? myCustomAttribute?.CustomEvenType ?? _customEventType ?? "serilogLogEvent";
 
       string GetSubject()
       {
         // try to find the method where the log event initiated from
-        var assemblyName = callingMethod?.ReflectedType?.Assembly.GetName().Name;
-        var className = callingMethod?.ReflectedType?.Name;
-        var methodName = callingMethod?.Name;
-        return $"{assemblyName ?? "UnknownApplication"}/{className}/{methodName}";
+        var assemblyName = callingMethod?.ReflectedType?.Assembly.GetName().Name ?? "General";
+        var className = callingMethod?.ReflectedType?.Name ?? "Class";
+        var methodName = callingMethod?.Name ?? "Method";
+        return $"{assemblyName}/{className}/{methodName}";
 
       }
     }
