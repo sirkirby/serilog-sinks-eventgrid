@@ -96,7 +96,7 @@ public class MyLogicClass
       "value": 
       {
         "name": "First Last",
-        "username": "developer"
+        "username": "developer",
         "$typeTag": "UserContext"
       }
     }
