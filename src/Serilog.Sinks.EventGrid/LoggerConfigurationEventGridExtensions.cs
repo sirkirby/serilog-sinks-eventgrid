@@ -13,6 +13,8 @@ namespace Serilog
       string topicEndpoint,
       string customEventSubject = null,
       string customEventType = null,
+      string customSubjectPropertyName = "EventSubject",
+      string customTypePropertyName = "EventType",
       CustomEventRequestAuth customEventRequestAuth = CustomEventRequestAuth.Key,
       LogEventLevel restrictedToMinimumLevel = LogEventLevel.Information,
       IFormatProvider formatProvider = null)
@@ -30,7 +32,7 @@ namespace Serilog
         throw new ArgumentException("topicEndpoint must be an absolute uri");
 
       return loggerConfiguration.Sink(
-        new EventGridSink(formatProvider, key, topicUri, customEventSubject, customEventType, customEventRequestAuth), restrictedToMinimumLevel);
+        new EventGridSink(formatProvider, key, topicUri, customEventSubject, customEventType, customSubjectPropertyName, customTypePropertyName, customEventRequestAuth), restrictedToMinimumLevel);
     }
   }
 }
