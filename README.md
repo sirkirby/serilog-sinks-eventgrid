@@ -2,6 +2,11 @@
 
 All log events are sent to a custom event grid topic as an HTTP Post. For more information on Event Grid, see https://docs.microsoft.com/en-us/azure/event-grid/
 
+## Targets
+
+* [.NET Standard 2](https://github.com/dotnet/standard/blob/master/docs/versions.md) (netstandard2)
+* .NET Framework 4.6.1 (net461)
+
 ## Usage
 
 ```csharp
