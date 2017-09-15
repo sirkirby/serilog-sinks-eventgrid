@@ -61,7 +61,7 @@ Log.ForContext("EventPropertyName", "myCustomType").Information("{@OtherData}", 
 
 ### Custom Attributes
 
-In to specifying the subject and type through configuration or properties, you can rely on reflection at runtime using the `[EventGridSubject]` and `[EventGridType]` Attributes. You can decorate any method or class with the attributes, using one or both on each. The Serilog log event called within the context of a method or class decorated with the attribute, will use those values when submitting the event.
+As an alternative to specifying the subject and type through log configuration or properties, you can decorate your code at design time with the `[EventGridSubject]` and `[EventGridType]` Attributes. Any method or class is supported, using one or both on each. The Serilog log event called within the context of a method or class decorated with either attribute, will use those values when submitting the event. The first ones closest to the log event call in the stack, win.
 
 ```csharp
 [EventGridType("MyCustomType")]
@@ -79,7 +79,7 @@ In the above example, the information log event would have a subject of `MyCusto
 
 ### When you don't specify a custom subject or type
 
-The simplest way to use the sink, is to let it set the subject and type for you. If neither was supplied using the above methods, then the sink will use reflection to walk back up the stack trace and attempt to add a meaningful subject and type for your event. The subject is based on the calling apps method name and any parameter names for that method in the following format: `MethodName/param1/param2`. The type will simply use the assembly name and class name in the following format: `AssemblyName/ClassName`. This is the resulting event based on the example class:
+The simplest way to use the sink, is to let it set the subject and type for you. If neither was supplied using the above methods, then the sink will use reflection to walk back up the stack trace and attempt to add a meaningful subject and type for your event. The subject will be derived from the calling method's name, as well as it's parameter names, in the following format: `MethodName/param1/param2`. The type will be derived from the calling method's class name and the class's assembly name, in the following format: `AssemblyName/ClassName`. This is the resulting event based on the example class:
 
 ```csharp
 public class MyLogicClass
