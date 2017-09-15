@@ -99,41 +99,51 @@ namespace Serilog.Sinks.EventGrid
       var methods = stackFrames.Where(f => f != null).Select(f => f.GetMethod()).ToArray();
       // walk through serilog to reach the calling method
       var callingMethod = methods.FirstOrDefault(m => !m?.DeclaringType?.FullName?.StartsWith("Serilog") ?? false) ?? methods.First();
-      EventGridSinkAttribute myCustomAttribute;
 
-      // first look for the first method in the stack with the attribute
-      var methodAttribute = methods.FirstOrDefault(m => m.GetCustomAttribute<EventGridSinkAttribute>() != null)?.GetCustomAttribute<EventGridSinkAttribute>();
-      if (methodAttribute != null)
-        myCustomAttribute = methodAttribute;
-      else
-      {
-        // then look for the first class with the attribute, there can be only one
-        var classAttribute = methods.FirstOrDefault(m => m.ReflectedType != null && m.ReflectedType.GetCustomAttribute<EventGridSinkAttribute>() != null)?.ReflectedType?.GetCustomAttribute<EventGridSinkAttribute>();
-        myCustomAttribute = classAttribute;
-      }
+      var subjectAttributeValue = GetCustomValueFromAttribute<EventGridSubjectAttribute>(methods);
+      var typeAttributeValue = GetCustomValueFromAttribute<EventGridTypeAttribute>(methods);
 
       // assign the event info, failing back to generic defaults
-      customEvent.Subject = customEvent.Subject ?? myCustomAttribute?.CustomEventSubject ?? GetSubject();
-      customEvent.EventType = customEvent.EventType ?? myCustomAttribute?.CustomEvenType ?? _customEventType ?? GetType();
+      customEvent.Subject = customEvent.Subject ?? subjectAttributeValue ?? GetSubject();
+      customEvent.EventType = customEvent.EventType ?? typeAttributeValue ?? _customEventType ?? GetEventType() ?? "AppDomain/Class";
 
       string GetSubject()
       {
-        // try to find the method where the log event initiated from
-        var assemblyName = callingMethod?.ReflectedType?.Assembly.GetName().Name ?? "General";
-        var className = callingMethod?.ReflectedType?.Name ?? "Class";
-        var methodName = callingMethod.Name;
-        return $"{assemblyName}/{className}/{methodName}";
-
+        var methodName = GetMethodWithParams() ?? "Method/default";
+        return $"{methodName}";
       }
 
-      string GetType()
+      string GetMethodWithParams()
       {
-        var parameterNames = callingMethod.GetParameters().Any() 
-          ? callingMethod.GetParameters().Select(x => x.Name).Aggregate((combined, next) => combined += $".{next}") 
-          : ".none";
-        var methodWithParameters = $"{callingMethod.Name}.{parameterNames}";
+        var parameterNames = callingMethod != null && callingMethod.GetParameters().Any() 
+          ? callingMethod.GetParameters().Select(x => x.Name).Aggregate((combined, next) => combined += string.IsNullOrEmpty(combined) ? next : $"/{next}") 
+          : "default";
+        var methodWithParameters = $"{callingMethod.Name}/{parameterNames}";
         return methodWithParameters;
       }
+
+      string GetEventType()
+      {
+        var assemblyName = callingMethod?.ReflectedType?.Assembly.GetName().Name ?? "General";
+        var className = callingMethod?.ReflectedType?.Name ?? "Class";
+        return $"{assemblyName}/{className}";
+      }
+    }
+
+    private string GetCustomValueFromAttribute<TAttribute>(MethodBase[] methods) where TAttribute : Attribute, IEventGridAttribute
+    {
+      TAttribute tAttribute;
+      // look for the first method in the stack with the type attribute
+      var methodAttribute = methods.FirstOrDefault(m => m.GetCustomAttribute<TAttribute>() != null)?.GetCustomAttribute<TAttribute>();
+      if (methodAttribute != null)
+        tAttribute = methodAttribute;
+      else
+      {
+        // then look for the first class with the attribute, there can be only one
+        var classAttribute = methods.FirstOrDefault(m => m.ReflectedType != null && m.ReflectedType.GetCustomAttribute<TAttribute>() != null)?.ReflectedType?.GetCustomAttribute<TAttribute>();
+        tAttribute = classAttribute;
+      }
+      return tAttribute?.CustomValue;
     }
   }
 }

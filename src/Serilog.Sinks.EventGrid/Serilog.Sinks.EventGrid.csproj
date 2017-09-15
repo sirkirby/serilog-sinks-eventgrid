@@ -8,12 +8,12 @@
     <Product />
     <Description>Send log events to custom topics in Azure Event Grid</Description>
     <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
-    <PackageProjectUrl>http://serilog.net</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/authenticom/serilog-sinks-eventgrid</PackageProjectUrl>
     <PackageIconUrl>http://serilog.net/images/serilog-sink-nuget.png</PackageIconUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Authenticom/serilog-sinks-eventgrid</RepositoryUrl>
     <PackageTags>serilog events eventgrid</PackageTags>
-    <Copyright>Copyright © Serilog Contributors 2017</Copyright>
+    <Copyright>Copyright © Chris Kirby 2017</Copyright>
   </PropertyGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">

@@ -2,6 +2,8 @@
 
 All log events are sent to a custom event grid topic as an HTTP Post. For more information on Event Grid, see https://docs.microsoft.com/en-us/azure/event-grid/
 
+[![NuGet](https://img.shields.io/nuget/v/Serilog.Sinks.EventGrid.svg)](https://www.nuget.org/packages/Serilog.Sinks.EventGrid/) [![Build status](https://ci.appveyor.com/api/projects/status/uxmd0qanuk1eltrg/branch/master?svg=true)](https://ci.appveyor.com/project/Authenticom/serilog-sinks-eventgrid/branch/master)
+
 ## Targets
 
 * [.NET Standard 2](https://github.com/dotnet/standard/blob/master/docs/versions.md) (netstandard2)
@@ -43,7 +45,7 @@ The type of every event sent by this logger configuration
 
 **customSubjectPropertyName** (string)
 
-Name of the property added to the Serilog log event that will contain the Subject of the event
+Name of the property added to the Serilog log event that will contain the Subject of the event. By default, the property key it's looking for is `EventSubject`
 
 ```csharp
 Log.ForContext("SubjectPropertyName", "my/custom/subject/id").Information("{@OtherData}", otherData)
@@ -51,7 +53,7 @@ Log.ForContext("SubjectPropertyName", "my/custom/subject/id").Information("{@Oth
 
 **customTypePropertyName** (string)
 
-Name of the property added to the Serilog log event that will contain the Type of the event
+Name of the property added to the Serilog log event that will contain the Type of the event.  By default, the property key it's looking for is `EventType`
 
 ```csharp
 Log.ForContext("EventPropertyName", "myCustomType").Information("{@OtherData}", otherData)
@@ -59,13 +61,13 @@ Log.ForContext("EventPropertyName", "myCustomType").Information("{@OtherData}", 
 
 ### Custom Attributes
 
-In to specifying the subject and type through configuration or properties, you can rely on reflection at runtime using the `[EventGridSink]` Attribute. You can decorate any method or class with the attribute specifying the subject, type, or both. The Serilog log event called within the context of a method or class decorated with the attribute, will use those values when submitting the event.
+In to specifying the subject and type through configuration or properties, you can rely on reflection at runtime using the `[EventGridSubject]` and `[EventGridType]` Attributes. You can decorate any method or class with the attributes, using one or both on each. The Serilog log event called within the context of a method or class decorated with the attribute, will use those values when submitting the event.
 
 ```csharp
-[EventGridSink("MyCustomType")]
+[EventGridType("MyCustomType")]
 public class MyLogicClass
 { 
-  [EventGridSink(null, "MyCustomSubject/DoSomething")]
+  [EventGridSubject("MyCustomSubject/DoSomething")]
   public void DoSomething(UserContext user)
   {
     Log.Information("{@user}", user);
@@ -77,7 +79,7 @@ In the above example, the information log event would have a subject of `MyCusto
 
 ### When you don't specify a custom subject or type
 
-The simplest way to use the sink, is to let it set the subject and type for you. If neither was supplied using the above methods, then the sink will use reflection to walk back up the stack trace and attempt to add a meaningful subject and type for your event. The subject is based on the calling apps assembly name, class name, and method name in the following format: `AssemblyName/ClassName/MethodName`. The type will combine the calling method name and any parameter names for that method in the following format: `MethodName.param1Name.param2Name`. This is the resulting event based on the example class:
+The simplest way to use the sink, is to let it set the subject and type for you. If neither was supplied using the above methods, then the sink will use reflection to walk back up the stack trace and attempt to add a meaningful subject and type for your event. The subject is based on the calling apps method name and any parameter names for that method in the following format: `MethodName/param1/param2`. The type will simply use the assembly name and class name in the following format: `AssemblyName/ClassName`. This is the resulting event based on the example class:
 
 ```csharp
 public class MyLogicClass
@@ -92,8 +94,8 @@ public class MyLogicClass
 ```json
 [{
   "id": "15065e6e-5c0e-4258-836a-8cfc6f7b0efd",
-  "eventType": "DoSomething.user",
-  "subject": "MyClassLib/MyLogicClass/DoSomething",
+  "eventType": "MyClassLib/MyLogicClass",
+  "subject": "DoSomething/user",
   "eventTime": "2017-09-07T19:35:04.9853198Z",
   "data": [
     {
