@@ -100,12 +100,12 @@ namespace Serilog.Sinks.EventGrid
       // walk through serilog to reach the calling method
       var callingMethod = methods.FirstOrDefault(m => !m?.DeclaringType?.FullName?.StartsWith("Serilog") ?? false) ?? methods.First();
 
-      var subjectAttribute = GetSubjectFromAttribute(methods);
-      var typeAttribute = GetTypeFromAttribute(methods);
+      var subjectAttributeValue = GetCustomValueFromAttribute<EventGridSubjectAttribute>(methods);
+      var typeAttributeValue = GetCustomValueFromAttribute<EventGridTypeAttribute>(methods);
 
       // assign the event info, failing back to generic defaults
-      customEvent.Subject = customEvent.Subject ?? subjectAttribute?.CustomEventSubject ?? GetSubject();
-      customEvent.EventType = customEvent.EventType ?? typeAttribute?.CustomEventType ?? _customEventType ?? GetEventType() ?? "AppDomain/Class";
+      customEvent.Subject = customEvent.Subject ?? subjectAttributeValue ?? GetSubject();
+      customEvent.EventType = customEvent.EventType ?? typeAttributeValue ?? _customEventType ?? GetEventType() ?? "AppDomain/Class";
 
       string GetSubject()
       {
@@ -130,36 +130,20 @@ namespace Serilog.Sinks.EventGrid
       }
     }
 
-    private EventGridTypeAttribute GetTypeFromAttribute(MethodBase[] methods)
+    private string GetCustomValueFromAttribute<TAttribute>(MethodBase[] methods) where TAttribute : Attribute, IEventGridAttribute
     {
-      EventGridTypeAttribute typeAttribute;
+      TAttribute tAttribute;
       // look for the first method in the stack with the type attribute
-      var methodTypeAttribute = methods.FirstOrDefault(m => m.GetCustomAttribute<EventGridTypeAttribute>() != null)?.GetCustomAttribute<EventGridTypeAttribute>();
-      if (methodTypeAttribute != null)
-        typeAttribute = methodTypeAttribute;
+      var methodAttribute = methods.FirstOrDefault(m => m.GetCustomAttribute<TAttribute>() != null)?.GetCustomAttribute<TAttribute>();
+      if (methodAttribute != null)
+        tAttribute = methodAttribute;
       else
       {
         // then look for the first class with the attribute, there can be only one
-        var classTypeAttribute = methods.FirstOrDefault(m => m.ReflectedType != null && m.ReflectedType.GetCustomAttribute<EventGridTypeAttribute>() != null)?.ReflectedType?.GetCustomAttribute<EventGridTypeAttribute>();
-        typeAttribute = classTypeAttribute;
+        var classAttribute = methods.FirstOrDefault(m => m.ReflectedType != null && m.ReflectedType.GetCustomAttribute<TAttribute>() != null)?.ReflectedType?.GetCustomAttribute<TAttribute>();
+        tAttribute = classAttribute;
       }
-      return typeAttribute;
-    }
-
-    private EventGridSubjectAttribute GetSubjectFromAttribute(MethodBase[] methods)
-    {
-      EventGridSubjectAttribute subjectAttribute;
-      // look for the first method in the stack with the subject attribute
-      var methodSubjectAttribute = methods.FirstOrDefault(m => m.GetCustomAttribute<EventGridSubjectAttribute>() != null)?.GetCustomAttribute<EventGridSubjectAttribute>();
-      if (methodSubjectAttribute != null)
-        subjectAttribute = methodSubjectAttribute;
-      else
-      {
-        // then look for the first class with the attribute, there can be only one
-        var classSubjectAttribute = methods.FirstOrDefault(m => m.ReflectedType != null && m.ReflectedType.GetCustomAttribute<EventGridSubjectAttribute>() != null)?.ReflectedType?.GetCustomAttribute<EventGridSubjectAttribute>();
-        subjectAttribute = classSubjectAttribute;
-      }
-      return subjectAttribute;
+      return tAttribute?.CustomValue;
     }
   }
 }

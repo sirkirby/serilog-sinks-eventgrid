@@ -3,14 +3,15 @@
 namespace Serilog.Sinks.EventGrid
 {
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-  public class EventGridSubjectAttribute : Attribute
+  public class EventGridSubjectAttribute : Attribute, IEventGridAttribute
   {
-    public string CustomEventSubject { get; set; }
+    public string CustomValue { get; }
 
-    public EventGridSubjectAttribute(string customEventSubject)
+    public EventGridSubjectAttribute(string customValue)
     {
-      CustomEventSubject = customEventSubject;
+      CustomValue = customValue;
     }
-    public EventGridSubjectAttribute() : this (null) { }
+
+    public EventGridSubjectAttribute() { }
   }
 }
