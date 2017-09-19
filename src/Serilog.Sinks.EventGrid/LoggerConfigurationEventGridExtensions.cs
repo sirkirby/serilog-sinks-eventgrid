@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using Serilog.Configuration;
 using Serilog.Events;
 using Serilog.Sinks.EventGrid;
@@ -9,8 +10,8 @@ namespace Serilog
   {
     public static LoggerConfiguration EventGrid(
       this LoggerSinkConfiguration loggerConfiguration,
-      string key, 
-      string topicEndpoint,
+      string key = null, 
+      string topicEndpoint = null,
       string customEventSubject = null,
       string customEventType = null,
       string customSubjectPropertyName = "EventSubject",
@@ -20,6 +21,10 @@ namespace Serilog
       IFormatProvider formatProvider = null)
     {
       if (loggerConfiguration == null) throw new ArgumentNullException("loggerConfiguration");
+
+      // allow null and pull from app configuration
+      key = key ?? ConfigurationManager.AppSettings["EventGridTopicKey"];
+      topicEndpoint = topicEndpoint ?? ConfigurationManager.AppSettings["EventGridTopicUri"];
 
       if (string.IsNullOrWhiteSpace(key))
         throw new ArgumentNullException("key");

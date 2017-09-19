@@ -12,6 +12,7 @@ All log events are sent to a custom event grid topic as an HTTP Post. For more i
 ## Usage
 
 ```csharp
+// Full
 Log.Logger = new LoggerConfiguration()
           .WriteTo.EventGrid("TopicKeyorSASTokenString", 
             "https://my-topic-name.westus2-1.eventgrid.azure.net/api/events",
@@ -21,6 +22,9 @@ Log.Logger = new LoggerConfiguration()
             "EventPropertyName",
             restrictedToMinimumLevel: LogEventLevel.Information)
           .CreateLogger()
+  
+  // Min
+  Log.Logger = new LoggerConfiguration().WriteTo.EventGrid().CreateLogger()
 ```
 
 ### Required
@@ -32,6 +36,15 @@ The primary or secondary topic key, recommended for the most trusted events, or,
 **topicEndpoint** (string)
 
 The full topic uri, containing custom topic name and region. You can see this in the azure portal or retrieve it via the azue cli.
+
+Alternatively, you can pass the **key** and **topicEndPoint** through your `<appSettings>`: 
+
+```xml
+<appSettings>
+  <add key="EventGridTopicKey" value="TopicKeyorSASTokenString" />
+  <add key="EventGridTopicUri" value="https://my-topic-name.westus2-1.eventgrid.azure.net/api/events" />
+</appSettings>
+```
 
 ### Optional
 
@@ -58,6 +71,10 @@ Name of the property added to the Serilog log event that will contain the Type o
 ```csharp
 Log.ForContext("EventPropertyName", "myCustomType").Information("{@OtherData}", otherData)
 ```
+
+**restrictedToMinimumLevel** (enum)
+
+Specify the Serilog logging level. Default is `LogEventLevel.Information`
 
 ### Custom Attributes
 
