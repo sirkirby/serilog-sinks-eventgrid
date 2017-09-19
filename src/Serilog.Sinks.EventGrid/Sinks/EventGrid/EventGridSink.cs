@@ -61,6 +61,7 @@ namespace Serilog.Sinks.EventGrid
         GetEventInfoFromAttribute(customEvent);
 
       // clean up the payload
+      props.Add("LogMessage", logEvent.MessageTemplate.Text);
       customEvent.Data = props.Where(p => p.Key != _customSubjectPropertyName && p.Key != _customTypePropertyName);
 
       // finally, we have what we need post the event
