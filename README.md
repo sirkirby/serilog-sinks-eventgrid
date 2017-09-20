@@ -76,6 +76,23 @@ Log.ForContext("EventPropertyName", "myCustomType").Information("{@OtherData}", 
 
 Specify the Serilog logging level. Default is `LogEventLevel.Information`
 
+### Helper Extensions
+
+The sink adds additional extension methods to `ILogger` which can help simplify your Event Grid logging code:
+
+```csharp
+using Serilog.Sinks.EventGrid
+```
+
+```csharp
+// type, subject, and information event message with properties
+Log.EventGrid("myEventTypeName", "myEventSubjectName", "This is my Event {@MyContext}", myContext);
+// type and information event message with properties
+Log.EventGrid("myEventTypeName", "This is my Event {@MyContext}", myContext);
+// type and information event message
+Log.EventGrid("myEventTypeName", "This is my Event");
+```
+
 ### Custom Attributes
 
 As an alternative to specifying the subject and type through log configuration or properties, you can decorate your code at design time with the `[EventGridSubject]` and `[EventGridType]` Attributes. Any method or class is supported, using one or both on each. The Serilog log event called within the context of a method or class decorated with either attribute, will use those values when submitting the event. The first ones closest to the log event call in the stack, win.
