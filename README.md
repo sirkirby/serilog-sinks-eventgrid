@@ -86,11 +86,13 @@ using Serilog.Sinks.EventGrid
 
 ```csharp
 // type, subject, and information event message with properties
-Log.EventGrid("myEventTypeName", "myEventSubjectName", "This is my Event {@MyContext}", myContext);
-// type and information event message with properties
-Log.EventGrid("myEventTypeName", "This is my Event {@MyContext}", myContext);
-// type and information event message
-Log.EventGrid("myEventTypeName", "This is my Event");
+Log.Event("myEventTypeName", "myEventSubjectName", "This is my Event {@MyContext}", myContext);
+// type or subject with information event message and properties
+Log.EventType("myEventTypeName", "This is my Event {@MyContext}", myContext);
+Log.EventSubject("myEventSubjectName", "This is my Event {@MyContext}", myContext);
+// type or subject with information event message
+Log.EventType("myEventTypeName", "This is my Event");
+Log.EventSubject("myEventSubjectName", "This is my Event");
 ```
 
 ### Custom Attributes
