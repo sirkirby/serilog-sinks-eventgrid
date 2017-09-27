@@ -8,7 +8,7 @@ namespace Serilog.Sinks.EventGrid
 {
   public static class EventGridPropertyFormatter
   {
-    static readonly HashSet<Type> EventGridScalars = new HashSet<Type>
+    private static readonly HashSet<Type> EventGridScalars = new HashSet<Type>
     {
       typeof(bool),
       typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
@@ -53,7 +53,7 @@ namespace Serilog.Sinks.EventGrid
       return props;
     }
 
-    static object SimplifyScalar(object value)
+    private static object SimplifyScalar(object value)
     {
       if (value == null) return null;
 

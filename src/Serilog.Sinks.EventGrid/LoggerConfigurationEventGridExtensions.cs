@@ -17,6 +17,8 @@ namespace Serilog
       string customSubjectPropertyName = "EventSubject",
       string customTypePropertyName = "EventType",
       CustomEventRequestAuth customEventRequestAuth = CustomEventRequestAuth.Key,
+      int batchSizeLimit = EventGridSink.DefaultBatchPostingLimit,
+      TimeSpan? period = null,
       LogEventLevel restrictedToMinimumLevel = LogEventLevel.Information,
       IFormatProvider formatProvider = null)
     {
@@ -36,8 +38,19 @@ namespace Serilog
       if (!topicUri.IsAbsoluteUri)
         throw new ArgumentException("topicEndpoint must be an absolute uri");
 
+      var timePeriod = period ?? EventGridSink.DefaultPeriod;
+
       return loggerConfiguration.Sink(
-        new EventGridSink(formatProvider, key, topicUri, customEventSubject, customEventType, customSubjectPropertyName, customTypePropertyName, customEventRequestAuth), restrictedToMinimumLevel);
+        new EventGridSink(
+          formatProvider, 
+          key, topicUri, 
+          customEventSubject, 
+          customEventType, 
+          customEventRequestAuth, 
+          customSubjectPropertyName, 
+          customTypePropertyName, 
+          batchSizeLimit, 
+          timePeriod), restrictedToMinimumLevel);
     }
   }
 }
