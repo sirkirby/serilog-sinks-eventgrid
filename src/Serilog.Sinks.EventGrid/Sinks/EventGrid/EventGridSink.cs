@@ -14,12 +14,12 @@ namespace Serilog.Sinks.EventGrid
     public const int DefaultBatchPostingLimit = 10;
     public static readonly TimeSpan DefaultPeriod = TimeSpan.FromSeconds(5);
 
-    public EventGridSink(IFormatProvider formatProvider, 
-      string key, 
-      Uri topicUri, 
+    public EventGridSink(IFormatProvider formatProvider,
+      string key,
+      Uri topicUri,
       string customEventSubject,
-      string customEventType, 
-      CustomEventRequestAuth customEventRequestAuth, 
+      string customEventType,
+      CustomEventRequestAuth customEventRequestAuth,
       string customSubjectPropertyName,
       string customTypePropertyName,
       int batchSizeLimit,
