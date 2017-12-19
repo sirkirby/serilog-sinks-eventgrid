@@ -14,9 +14,9 @@
     <RepositoryUrl>https://github.com/Authenticom/serilog-sinks-eventgrid</RepositoryUrl>
     <PackageTags>serilog sink events eventgrid azure</PackageTags>
     <Copyright>Copyright © Chris Kirby 2017</Copyright>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="Microsoft.Net.Http">
       <Version>2.2.29</Version>
@@ -24,10 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="newtonsoft.json" Version="10.0.3" />
-    <PackageReference Include="serilog" Version="2.5.0" />
-    <PackageReference Include="serilog.sinks.periodicbatching" Version="2.1.1" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Serilog" Version="2.6.0" />
+    <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="2.1.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.1" />
   </ItemGroup>
 
 </Project>
