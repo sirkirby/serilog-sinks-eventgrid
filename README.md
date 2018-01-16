@@ -2,7 +2,7 @@
 
 All log events are sent to a custom event grid topic as an HTTP Post. For more information on Event Grid, see https://docs.microsoft.com/en-us/azure/event-grid/
 
-[![NuGet](https://img.shields.io/nuget/v/Serilog.Sinks.EventGrid.svg)](https://www.nuget.org/packages/Serilog.Sinks.EventGrid/) [![Build status](https://ci.appveyor.com/api/projects/status/uxmd0qanuk1eltrg/branch/master?svg=true)](https://ci.appveyor.com/project/Authenticom/serilog-sinks-eventgrid/branch/master)
+[![NuGet](https://img.shields.io/nuget/v/Serilog.Sinks.EventGrid.svg)](https://www.nuget.org/packages/Serilog.Sinks.EventGrid/) [![Build status](https://ci.appveyor.com/api/projects/status/o0nwqlc7ebkdw5g6/branch/master?svg=true)](https://ci.appveyor.com/project/Authenticom/serilog-sinks-eventgrid/branch/master) [![Waffle.io - Columns and their card count](https://badge.waffle.io/sirkirby/serilog-sinks-eventgrid.svg?columns=all)](https://waffle.io/sirkirby/serilog-sinks-eventgrid)
 
 ## Targets
 
