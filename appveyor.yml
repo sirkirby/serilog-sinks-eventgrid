@@ -34,10 +34,3 @@ deploy:
   on:
     branch: master
     Configuration: Release
-notifications:
-- provider: Slack
-  incoming_webhook:
-	  secure: L5X3/dlf2WAHJVcriwQOFwXFgzUFpDd7JV8v3eDzvvIOTtUC1hiTct9dPyNWezcYUxEqN2bwoAkOnq7nVR/31RWOjnQAeGIc9I1zyDFO9c4=
-  on_build_success: true
-  on_build_failure: true
-  on_build_status_changed: true
