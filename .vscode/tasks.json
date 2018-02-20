@@ -5,6 +5,16 @@
     "tasks": [
         {
             "label": "build",
+            "command": "dotnet build -f netstandard2.0",
+            "type": "shell",
+            "group": "build",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build all",
             "command": "dotnet build",
             "type": "shell",
             "group": "build",
